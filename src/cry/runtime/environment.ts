@@ -5,6 +5,7 @@ import {
     MK_NUMBER,
     RuntimeVal,
 } from "./values";
+import {errorMessage} from "./error";
 
 export function createGlobalEnv() {
     const env = new Environment();
@@ -49,7 +50,7 @@ export default class Environment {
         constant: boolean
     ): RuntimeVal {
         if (this.variables.has(varname)) {
-            throw `Cannot declare variable ${varname}. As it already is defined.`;
+            throw new Error(errorMessage(`Cannot declare variable ${varname}. As it already is defined.`));
         }
 
         this.variables.set(varname, value);
@@ -64,7 +65,7 @@ export default class Environment {
 
         // Cannot assign to constant
         if (env.constants.has(varname)) {
-            throw `Cannot reasign to variable ${varname} as it was declared constant.`;
+            throw new Error(errorMessage(`Cannot reasign to variable ${varname} as it was declared constant.`));
         }
 
         env.variables.set(varname, value);
@@ -82,7 +83,7 @@ export default class Environment {
         }
 
         if (this.parent == undefined) {
-            throw `Cannot resolve '${varname}' as it does not exist.`;
+            throw new Error(errorMessage(`Variable ${varname} is not defined.`));
         }
 
         return this.parent.resolve(varname);

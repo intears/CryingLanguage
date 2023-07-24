@@ -2,7 +2,7 @@ import {
     AssignmentExpr,
     BinaryExpr,
     CallExpr,
-    Identifier,
+    Identifier, MemberExpr,
     ObjectLiteral,
 } from "../../front/ast";
 import Environment from "../environment";
@@ -15,6 +15,7 @@ import {
     ObjectVal,
     RuntimeVal,
 } from "../values";
+import {errorMessage} from "../error";
 
 function eval_numeric_binary_expr(
     lhs: NumberVal,
@@ -69,12 +70,32 @@ export function eval_identifier(
     return val;
 }
 
+export function eval_member_expr(
+    member: MemberExpr,
+    env: Environment
+): RuntimeVal {
+    // get the value of the object parameter
+    const object = evaluate(member.object, env);
+
+    if (object.type !== "object") {
+        throw new Error(errorMessage(`Cannot access property of non-object type ${object.type}`));
+    }
+
+    const property = (object as ObjectVal).properties.get((member.property as Identifier).symbol.toString());
+
+    if (property == undefined) {
+        throw new Error(errorMessage(`Property ${(member.property as Identifier).symbol} does not exist on object ${object}`));
+    }
+
+    return property;
+}
+
 export function eval_assignment(
     node: AssignmentExpr,
     env: Environment
 ): RuntimeVal {
     if (node.assigne.kind !== "Identifier") {
-        throw `Invalid LHS inaide assignment expr ${JSON.stringify(node.assigne)}`;
+        throw new Error(errorMessage(`Invalid LHS inaide assignment expr ${JSON.stringify(node.assigne)}`));
     }
 
     const varname = (node.assigne as Identifier).symbol;
@@ -126,5 +147,5 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {
         return result;
     }
 
-    throw "Cannot call value that is not a function: " + JSON.stringify(fn);
+    throw new Error(errorMessage("Cannot call value that is not a function", JSON.stringify(fn)));
 }

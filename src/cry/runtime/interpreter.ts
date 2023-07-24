@@ -4,7 +4,7 @@ import {
     BinaryExpr,
     CallExpr,
     FunctionDeclaration,
-    Identifier,
+    Identifier, MemberExpr,
     NumericLiteral,
     ObjectLiteral,
     Program,
@@ -21,9 +21,10 @@ import {
     eval_assignment,
     eval_binary_expr,
     eval_call_expr,
-    eval_identifier,
+    eval_identifier, eval_member_expr,
     eval_object_expr,
 } from "./eval/expressions";
+import {errorMessage} from "./error";
 
 export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
     switch (astNode.kind) {
@@ -44,6 +45,8 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             return eval_binary_expr(astNode as BinaryExpr, env);
         case "Program":
             return eval_program(astNode as Program, env);
+        case "MemberExpr":
+            return eval_member_expr(astNode as MemberExpr, env);
         // Handle statements
         case "VarDeclaration":
             return eval_var_declaration(astNode as VarDeclaration, env);
@@ -51,10 +54,7 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             return eval_function_declaration(astNode as FunctionDeclaration, env);
         // Handle unimplimented ast types as error.
         default:
-            console.error(
-                "This AST Node has not yet been setup for interpretation.\n",
-                astNode
-            );
-            throw new Error("Unimplemented AST Node");
+
+            throw new Error(errorMessage("Unimplemented AST type: " + astNode.kind, astNode));
     }
 }

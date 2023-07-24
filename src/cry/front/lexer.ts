@@ -30,7 +30,7 @@ export enum TokenType {
 const KEYWORDS: Record<string, TokenType> = {
     let: TokenType.Let,
     const: TokenType.Const,
-    fn: TokenType.Fn,
+    fun: TokenType.Fn,
 };
 
 // Reoresents a single token from the source-code.
