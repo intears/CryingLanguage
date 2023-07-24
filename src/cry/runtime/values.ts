@@ -3,6 +3,7 @@ import { Stmt } from "../front/ast";
 export type ValueType =
     | "null"
     | "number"
+    | "string"
     | "boolean"
     | "object"
     | "native-fn"
@@ -69,4 +70,9 @@ export interface FunctionValue extends RuntimeVal {
     parameters: string[];
     declarationEnv: Environment;
     body: Stmt[];
+}
+
+export interface StringVal extends RuntimeVal {
+    type: "string";
+    value: string;
 }

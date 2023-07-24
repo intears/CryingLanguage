@@ -11,7 +11,7 @@ import {
     Property,
     Stmt,
     VarDeclaration,
-    FunctionDeclaration,
+    FunctionDeclaration, StringLiteral,
 } from "./ast";
 
 import { Token, tokenize, TokenType } from "./lexer";
@@ -390,6 +390,12 @@ export default class Parser {
                     kind: "NumericLiteral",
                     value: parseFloat(this.eat().value),
                 } as NumericLiteral;
+
+            case TokenType.String:
+                return {
+                    kind: "StringLiteral",
+                    value: this.eat().value,
+                } as StringLiteral;
 
             // Grouping Expressions
             case TokenType.OpenParen: {

@@ -1,4 +1,4 @@
-import { NumberVal, RuntimeVal } from "./values";
+import {NumberVal, RuntimeVal, StringVal} from "./values";
 import {
     AssignmentExpr,
     BinaryExpr,
@@ -8,7 +8,7 @@ import {
     NumericLiteral,
     ObjectLiteral,
     Program,
-    Stmt,
+    Stmt, StringLiteral,
     VarDeclaration,
 } from "../front/ast";
 import Environment from "./environment";
@@ -47,6 +47,11 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             return eval_program(astNode as Program, env);
         case "MemberExpr":
             return eval_member_expr(astNode as MemberExpr, env);
+        case "StringLiteral":
+            return {
+                value: (astNode as StringLiteral).value,
+                type: "string",
+            } as StringVal;
         // Handle statements
         case "VarDeclaration":
             return eval_var_declaration(astNode as VarDeclaration, env);

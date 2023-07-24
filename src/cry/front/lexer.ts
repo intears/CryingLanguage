@@ -3,6 +3,7 @@ export enum TokenType {
     // Literal Types
     Number,
     Identifier,
+    String,
     // Keywords
     Let,
     Const,
@@ -93,6 +94,15 @@ export function tokenize(sourceCode: string): Token[] {
             tokens.push(token(src.shift(), TokenType.OpenBracket));
         } else if (src[0] == "]") {
             tokens.push(token(src.shift(), TokenType.CloseBracket));
+        } else if (src[0] == '"') {
+            // Handle String Literals
+            src.shift(); // remove the opening quote
+            let str = "";
+            while (src[0] != '"') {
+                str += src.shift();
+            }
+            src.shift(); // remove the closing quote
+            tokens.push(token(str, TokenType.String));
         } // HANDLE BINARY OPERATORS
         else if (
             src[0] == "+" ||
