@@ -1,19 +1,20 @@
 import {
     AssignmentExpr,
     BinaryExpr,
-    CallExpr,
+    CallExpr, ComparisonExpr,
     Identifier, MemberExpr,
     ObjectLiteral,
 } from "../../front/ast";
 import Environment from "../environment";
 import { evaluate } from "../interpreter";
 import {
+    BooleanVal,
     FunctionValue,
     MK_NULL,
     NativeFnValue,
     NumberVal,
     ObjectVal,
-    RuntimeVal,
+    RuntimeVal, StringVal,
 } from "../values";
 import {errorMessage} from "../error";
 
@@ -60,6 +61,40 @@ export function eval_binary_expr(
 
     // One or both are NULL
     return MK_NULL();
+}
+
+export function eval_comparison_expr(comop: ComparisonExpr, env: Environment): RuntimeVal {
+    const lhs = evaluate(comop.left, env);
+    const rhs = evaluate(comop.right, env);
+
+    // Dynamic check for type equality
+    if (lhs.type !== rhs.type) {
+        throw new Error(errorMessage(`Cannot compare values of different types ${lhs.type} and ${rhs.type}`));
+    }
+
+    // Perform the comparison based on the operator
+    switch (comop.operator.value) {
+        case "==":
+            return { type: "boolean", value: isEqual(lhs, rhs) } as BooleanVal;
+        case "!=":
+            return { type: "boolean", value: !isEqual(lhs, rhs) } as BooleanVal;
+        // Add more cases for other comparison operators like '<', '>', '<=', '>=' etc.
+        default:
+            throw new Error(errorMessage(`Invalid comparison operator: ${comop.operator.value}`));
+    }
+}
+
+// Helper function to check equality based on data type
+function isEqual(lhs: RuntimeVal, rhs: RuntimeVal): boolean {
+    if (lhs.type === "number" || lhs.type === "boolean") {
+        return (lhs as NumberVal).value === (rhs as NumberVal).value;
+    } else if (lhs.type === "string") {
+        return (lhs as StringVal).value === (rhs as StringVal).value;
+    } else {
+        // Handle other data types as needed (e.g., arrays, objects)
+        // For complex data types, you might need a custom comparison function.
+        throw new Error(errorMessage(`Unsupported data type for comparison: ${lhs.type}`));
+    }
 }
 
 export function eval_identifier(

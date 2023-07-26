@@ -8,10 +8,12 @@ export enum TokenType {
     Let,
     Const,
     Fn, // fn
+    If, // if
+    Else, // else
 
     // Grouping * Operators
     BinaryOperator,
-    Equals,
+    Equals, DoubleEquals, NotEquals, LessThan, GreaterThan, LessThanEquals, GreaterThanEquals,
     Comma,
     Dot,
     Colon,
@@ -32,6 +34,8 @@ const KEYWORDS: Record<string, TokenType> = {
     let: TokenType.Let,
     const: TokenType.Const,
     fun: TokenType.Fn,
+    if: TokenType.If,
+    else: TokenType.Else,
 };
 
 // Reoresents a single token from the source-code.
@@ -114,7 +118,13 @@ export function tokenize(sourceCode: string): Token[] {
             tokens.push(token(src.shift(), TokenType.BinaryOperator));
         } // Handle Conditional & Assignment Tokens
         else if (src[0] == "=") {
-            tokens.push(token(src.shift(), TokenType.Equals));
+            if(src[1] == "=") {
+                tokens.push(token(src.shift() + src.shift(), TokenType.DoubleEquals));
+            } else if(src[1] == "!") {
+                tokens.push(token(src.shift() + src.shift(), TokenType.NotEquals));
+            } else {
+                tokens.push(token(src.shift(), TokenType.Equals));
+            }
         } else if (src[0] == ";") {
             tokens.push(token(src.shift(), TokenType.Semicolon));
         } else if (src[0] == ":") {

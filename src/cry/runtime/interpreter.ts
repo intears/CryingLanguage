@@ -2,7 +2,7 @@ import {NumberVal, RuntimeVal, StringVal} from "./values";
 import {
     AssignmentExpr,
     BinaryExpr,
-    CallExpr,
+    CallExpr, ComparisonExpr,
     FunctionDeclaration,
     Identifier, MemberExpr,
     NumericLiteral,
@@ -20,7 +20,7 @@ import {
 import {
     eval_assignment,
     eval_binary_expr,
-    eval_call_expr,
+    eval_call_expr, eval_comparison_expr,
     eval_identifier, eval_member_expr,
     eval_object_expr,
 } from "./eval/expressions";
@@ -35,6 +35,8 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
             } as NumberVal;
         case "Identifier":
             return eval_identifier(astNode as Identifier, env);
+        case "ComparisonExpr":
+            return eval_comparison_expr(astNode as ComparisonExpr, env);
         case "ObjectLiteral":
             return eval_object_expr(astNode as ObjectLiteral, env);
         case "CallExpr":

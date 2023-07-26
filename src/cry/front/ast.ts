@@ -3,6 +3,8 @@
 // ---     Defines the structure of our languages AST      ---
 // -----------------------------------------------------------
 
+import {Token} from "./lexer";
+
 export type NodeType =
 // STATEMENTS
     | "Program"
@@ -18,7 +20,9 @@ export type NodeType =
     | "NumericLiteral"
     | "StringLiteral"
     | "Identifier"
-    | "BinaryExpr";
+    | "BinaryExpr"
+    | "IfExpr"
+    | "ComparisonExpr";
 
 /**
  * Statements do not result in a value at runtime.
@@ -118,4 +122,18 @@ export interface Property extends Expr {
 export interface ObjectLiteral extends Expr {
     kind: "ObjectLiteral";
     properties: Property[];
+}
+
+export interface IfExpr extends Expr {
+    kind: "IfExpr";
+    condition: boolean;
+    then: Expr[];
+    otherwise: Expr[];
+}
+
+export interface ComparisonExpr extends Expr {
+    kind: "ComparisonExpr";
+    left: Expr;
+    right: Expr;
+    operator: Token;
 }

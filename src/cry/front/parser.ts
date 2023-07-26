@@ -11,7 +11,7 @@ import {
     Property,
     Stmt,
     VarDeclaration,
-    FunctionDeclaration, StringLiteral,
+    FunctionDeclaration, StringLiteral, IfExpr, ComparisonExpr,
 } from "./ast";
 
 import { Token, tokenize, TokenType } from "./lexer";
@@ -180,6 +180,69 @@ export default class Parser {
         return this.parse_assignment_expr();
     }
 
+    // private parse_if_expr(): Expr {
+    //     // if ( EXPR ) { STMT[] }
+    //     this.eat(); // eat if keyword
+    //     this.expect(TokenType.OpenParen, "Expected open paren following if keyword");
+    //     const condition = this.parse_expr();
+    //
+    //     // see if condition is true or false
+    //     this.expect(TokenType.CloseParen, "Expected close paren following if condition");
+    //     this.expect(TokenType.OpenBrace, "Expected open brace following if condition");
+    //     // parse body
+    //     const body: Stmt[] = [];
+    //     while (this.at().type !== TokenType.EOF && this.at().type !== TokenType.CloseBrace) {
+    //         body.push(this.parse_stmt());
+    //     }
+    //
+    //     this.expect(TokenType.CloseBrace, "Expected close brace following if body");
+    //
+    //     // parse else if there is one
+    //     let elseBody: Stmt[] = [];
+    //     if (this.at().type == TokenType.Else) {
+    //         this.eat(); // eat else keyword
+    //         this.expect(TokenType.OpenBrace, "Expected open brace following else keyword");
+    //         while (this.at().type !== TokenType.EOF && this.at().type !== TokenType.CloseBrace) {
+    //             elseBody.push(this.parse_stmt());
+    //         }
+    //     }
+    //
+    //     // todo add the condition bool check, will most likely need to add the bool type to the lexer and == || && != >= <= > < operators
+    //     const ifExpr = {
+    //         kind: "IfExpr",
+    //         condition,
+    //         then: body,
+    //         otherwise: elseBody,
+    //     } as IfExpr;
+    //
+    // }
+
+    private parse_comparison_expr(): Expr {
+        // EXPR ( == | != | > | < | >= | <= ) EXPR
+        const left = this.parse_additive_expr();
+
+        if (
+            this.at().type == TokenType.DoubleEquals ||
+            this.at().type == TokenType.NotEquals ||
+            this.at().type == TokenType.GreaterThan ||
+            this.at().type == TokenType.LessThan
+            // this.at().type == TokenType.GreaterThanOrEqual ||
+            // this.at().type == TokenType.LessThanOrEqual
+        ) {
+            const operator = this.eat();
+            const right = this.parse_additive_expr();
+
+            return {
+                kind: "ComparisonExpr",
+                left,
+                operator,
+                right,
+            } as ComparisonExpr;
+        }
+
+        return left;
+    }
+
     private parse_assignment_expr(): Expr {
         const left = this.parse_object_expr();
 
@@ -195,7 +258,7 @@ export default class Parser {
     private parse_object_expr(): Expr {
         // { Prop[] }
         if (this.at().type !== TokenType.OpenBrace) {
-            return this.parse_additive_expr();
+            return this.parse_comparison_expr();
         }
 
         this.eat(); // advance past open brace.
