@@ -1,12 +1,15 @@
 import {
     AssignmentExpr,
     BinaryExpr,
-    CallExpr, ComparisonExpr,
-    Identifier, IfExpr, MemberExpr,
+    CallExpr,
+    ComparisonExpr,
+    Identifier,
+    IfExpr,
+    MemberExpr,
     ObjectLiteral,
 } from "../../front/ast";
 import Environment from "../environment";
-import { evaluate } from "../interpreter";
+import {evaluate} from "../interpreter";
 import {
     BooleanVal,
     FunctionValue,
@@ -14,7 +17,8 @@ import {
     NativeFnValue,
     NumberVal,
     ObjectVal,
-    RuntimeVal, StringVal,
+    RuntimeVal,
+    StringVal,
 } from "../values";
 import {errorMessage} from "../error";
 
@@ -52,27 +56,27 @@ function eval_string_binary_expr(lhs1: StringVal, rhs1: StringVal, operator: str
 }
 
 /**
- * Evaulates expressions following the binary operation type.
+ * Evaluates expressions following the binary operation type.
  */
 export function eval_binary_expr(
-    binop: BinaryExpr,
+    binaryOp: BinaryExpr,
     env: Environment
 ): RuntimeVal {
-    const lhs = evaluate(binop.left, env);
-    const rhs = evaluate(binop.right, env);
+    const lhs = evaluate(binaryOp.left, env);
+    const rhs = evaluate(binaryOp.right, env);
 
     // Only currently support numeric operations
     if (lhs.type == "number" && rhs.type == "number") {
         return eval_numeric_binary_expr(
             lhs as NumberVal,
             rhs as NumberVal,
-            binop.operator
+            binaryOp.operator
         );
     } else if (lhs.type == "string" && rhs.type == "string") {
         return eval_string_binary_expr(
             lhs as StringVal,
             rhs as StringVal,
-            binop.operator
+            binaryOp.operator
         );
     }
 
@@ -80,9 +84,9 @@ export function eval_binary_expr(
     return MK_NULL();
 }
 
-export function eval_comparison_expr(comop: ComparisonExpr, env: Environment): RuntimeVal {
-    const lhs = evaluate(comop.left, env);
-    const rhs = evaluate(comop.right, env);
+export function eval_comparison_expr(compareOp: ComparisonExpr, env: Environment): RuntimeVal {
+    const lhs = evaluate(compareOp.left, env);
+    const rhs = evaluate(compareOp.right, env);
 
     // Dynamic check for type equality
     if (lhs.type !== rhs.type) {
@@ -90,14 +94,14 @@ export function eval_comparison_expr(comop: ComparisonExpr, env: Environment): R
     }
 
     // Perform the comparison based on the operator
-    switch (comop.operator.value) {
+    switch (compareOp.operator.value) {
         case "==":
             return { type: "boolean", value: isEqual(lhs, rhs) } as BooleanVal;
         case "!=":
             return { type: "boolean", value: !isEqual(lhs, rhs) } as BooleanVal;
         // Add more cases for other comparison operators like '<', '>', '<=', '>=' etc.
         default:
-            throw new Error(errorMessage(`Invalid comparison operator: ${comop.operator.value}`));
+            throw new Error(errorMessage(`Invalid comparison operator: ${compareOp.operator.value}`));
     }
 }
 
@@ -118,8 +122,7 @@ export function eval_identifier(
     ident: Identifier,
     env: Environment
 ): RuntimeVal {
-    const val = env.lookupVar(ident.symbol);
-    return val;
+    return env.lookupVar(ident.symbol);
 }
 
 export function eval_member_expr(
@@ -150,8 +153,8 @@ export function eval_assignment(
         throw new Error(errorMessage(`Invalid LHS inside assignment expr ${JSON.stringify(node.assigne)}`));
     }
 
-    const varname = (node.assigne as Identifier).symbol;
-    return env.assignVar(varname, evaluate(node.value, env));
+    const s = (node.assigne as Identifier).symbol;
+    return env.assignVar(s, evaluate(node.value, env));
 }
 
 export function eval_object_expr(
@@ -174,20 +177,19 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {
     const fn = evaluate(expr.caller, env);
 
     if (fn.type == "native-fn") {
-        const result = (fn as NativeFnValue).call(args, env);
-        return result;
+        return (fn as NativeFnValue).call(args, env);
     }
 
     if (fn.type == "function") {
         const func = fn as FunctionValue;
         const scope = new Environment(func.declarationEnv);
 
-        // Create the variables for the parameters list
+        // Create the variables for the parameter list
         for (let i = 0; i < func.parameters.length; i++) {
             // TODO Check the bounds here.
             // verify arity of function
-            const varname = func.parameters[i];
-            scope.declareVar(varname, args[i], false);
+            const s = func.parameters[i];
+            scope.declareVar(s, args[i], false);
         }
 
         let result: RuntimeVal = MK_NULL();
@@ -210,11 +212,12 @@ export function eval_if_expr(expr: IfExpr, env: Environment): RuntimeVal {
         throw new Error(errorMessage("Condition must be a boolean value", JSON.stringify(condition)));
     }
     let result: RuntimeVal = MK_NULL();
-    if ((condition as BooleanVal).value) { // if condition is true
+    if ((condition as BooleanVal).value) { // if the condition is true
         for (const stmt of expr.then) {
             result = evaluate(stmt, env);
         }
-    } else if (!(condition as BooleanVal).value && expr.otherwise != undefined) { // condition is false and there is an else block
+    } else if (!(condition as BooleanVal).value && expr.otherwise != undefined) { // the condition is false
+                                                                                // and there is an else block
         for (const stmt of expr.otherwise) {
             result = evaluate(stmt, env);
         }
