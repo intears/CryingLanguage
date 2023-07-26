@@ -3,7 +3,7 @@ import {
     MK_NATIVE_FN,
     MK_NULL,
     MK_NUMBER,
-    RuntimeVal,
+    RuntimeVal, StringVal,
 } from "./values";
 import {errorMessage} from "./error";
 
@@ -18,7 +18,15 @@ export function createGlobalEnv() {
     env.declareVar(
         "print",
         MK_NATIVE_FN((args, scope) => {
-            console.log(...args);
+            const argList = args.map((arg) => {
+                // see if arg has .value
+                if (arg.hasOwnProperty("value")) {
+                    return (arg as unknown as {value: string}).value;
+                } else {
+                    return arg;
+                }
+            });
+            console.log(...argList);
             return MK_NULL();
         }),
         true
