@@ -40,6 +40,17 @@ function eval_numeric_binary_expr(
     return { value: result, type: "number" };
 }
 
+function eval_string_binary_expr(lhs1: StringVal, rhs1: StringVal, operator: string): StringVal {
+    let result: string;
+    if (operator == "+") {
+        result = lhs1.value + rhs1.value;
+    } else {
+        throw errorMessage("Invalid binary operation on strings");
+    }
+
+    return { value: result, type: "string" };
+}
+
 /**
  * Evaulates expressions following the binary operation type.
  */
@@ -55,6 +66,12 @@ export function eval_binary_expr(
         return eval_numeric_binary_expr(
             lhs as NumberVal,
             rhs as NumberVal,
+            binop.operator
+        );
+    } else if (lhs.type == "string" && rhs.type == "string") {
+        return eval_string_binary_expr(
+            lhs as StringVal,
+            rhs as StringVal,
             binop.operator
         );
     }
@@ -130,7 +147,7 @@ export function eval_assignment(
     env: Environment
 ): RuntimeVal {
     if (node.assigne.kind !== "Identifier") {
-        throw new Error(errorMessage(`Invalid LHS inaide assignment expr ${JSON.stringify(node.assigne)}`));
+        throw new Error(errorMessage(`Invalid LHS inside assignment expr ${JSON.stringify(node.assigne)}`));
     }
 
     const varname = (node.assigne as Identifier).symbol;
