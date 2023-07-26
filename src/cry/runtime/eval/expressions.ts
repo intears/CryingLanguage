@@ -2,7 +2,7 @@ import {
     AssignmentExpr,
     BinaryExpr,
     CallExpr, ComparisonExpr,
-    Identifier, MemberExpr,
+    Identifier, IfExpr, MemberExpr,
     ObjectLiteral,
 } from "../../front/ast";
 import Environment from "../environment";
@@ -183,4 +183,25 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeVal {
     }
 
     throw new Error(errorMessage("Cannot call value that is not a function", JSON.stringify(fn)));
+}
+
+
+// evaluate if statement
+export function eval_if_expr(expr: IfExpr, env: Environment): RuntimeVal {
+    const condition = evaluate(expr.condition, env);
+    if (condition.type !== "boolean") {
+        throw new Error(errorMessage("Condition must be a boolean value", JSON.stringify(condition)));
+    }
+    let result: RuntimeVal = MK_NULL();
+    if ((condition as BooleanVal).value) { // if condition is true
+        for (const stmt of expr.then) {
+            result = evaluate(stmt, env);
+        }
+    } else if (!(condition as BooleanVal).value && expr.otherwise != undefined) { // condition is false and there is an else block
+        for (const stmt of expr.otherwise) {
+            result = evaluate(stmt, env);
+        }
+    } else {
+        return MK_NULL();
+    }
 }

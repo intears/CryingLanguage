@@ -120,12 +120,14 @@ export function tokenize(sourceCode: string): Token[] {
         else if (src[0] == "=") {
             if(src[1] == "=") {
                 tokens.push(token(src.shift() + src.shift(), TokenType.DoubleEquals));
-            } else if(src[1] == "!") {
-                tokens.push(token(src.shift() + src.shift(), TokenType.NotEquals));
-            } else {
+            }  else {
                 tokens.push(token(src.shift(), TokenType.Equals));
             }
-        } else if (src[0] == ";") {
+        }
+        else if(src[0] == "!" && src[1] == "=") {
+            tokens.push(token(src.shift() + src.shift(), TokenType.NotEquals));
+        }
+        else if (src[0] == ";") {
             tokens.push(token(src.shift(), TokenType.Semicolon));
         } else if (src[0] == ":") {
             tokens.push(token(src.shift(), TokenType.Colon));

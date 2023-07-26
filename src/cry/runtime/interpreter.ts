@@ -4,7 +4,7 @@ import {
     BinaryExpr,
     CallExpr, ComparisonExpr,
     FunctionDeclaration,
-    Identifier, MemberExpr,
+    Identifier, IfExpr, MemberExpr,
     NumericLiteral,
     ObjectLiteral,
     Program,
@@ -21,7 +21,7 @@ import {
     eval_assignment,
     eval_binary_expr,
     eval_call_expr, eval_comparison_expr,
-    eval_identifier, eval_member_expr,
+    eval_identifier, eval_if_expr, eval_member_expr,
     eval_object_expr,
 } from "./eval/expressions";
 import {errorMessage} from "./error";
@@ -54,6 +54,8 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
                 value: (astNode as StringLiteral).value,
                 type: "string",
             } as StringVal;
+        case "IfExpr":
+            return eval_if_expr(astNode as IfExpr, env)
         // Handle statements
         case "VarDeclaration":
             return eval_var_declaration(astNode as VarDeclaration, env);

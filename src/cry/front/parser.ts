@@ -2,19 +2,22 @@ import {
     AssignmentExpr,
     BinaryExpr,
     CallExpr,
+    ComparisonExpr,
     Expr,
+    FunctionDeclaration,
     Identifier,
+    IfExpr,
     MemberExpr,
     NumericLiteral,
     ObjectLiteral,
     Program,
     Property,
     Stmt,
+    StringLiteral,
     VarDeclaration,
-    FunctionDeclaration, StringLiteral, IfExpr, ComparisonExpr,
 } from "./ast";
 
-import { Token, tokenize, TokenType } from "./lexer";
+import {Token, tokenize, TokenType} from "./lexer";
 
 /**
  * Frontend for producing a valid AST from sourcode
@@ -82,6 +85,8 @@ export default class Parser {
                 return this.parse_var_declaration();
             case TokenType.Fn:
                 return this.parse_fn_declaration();
+            case TokenType.If:
+                return this.parse_if_expr()
             default:
                 return this.parse_expr();
         }
@@ -180,42 +185,49 @@ export default class Parser {
         return this.parse_assignment_expr();
     }
 
-    // private parse_if_expr(): Expr {
-    //     // if ( EXPR ) { STMT[] }
-    //     this.eat(); // eat if keyword
-    //     this.expect(TokenType.OpenParen, "Expected open paren following if keyword");
-    //     const condition = this.parse_expr();
-    //
-    //     // see if condition is true or false
-    //     this.expect(TokenType.CloseParen, "Expected close paren following if condition");
-    //     this.expect(TokenType.OpenBrace, "Expected open brace following if condition");
-    //     // parse body
-    //     const body: Stmt[] = [];
-    //     while (this.at().type !== TokenType.EOF && this.at().type !== TokenType.CloseBrace) {
-    //         body.push(this.parse_stmt());
-    //     }
-    //
-    //     this.expect(TokenType.CloseBrace, "Expected close brace following if body");
-    //
-    //     // parse else if there is one
-    //     let elseBody: Stmt[] = [];
-    //     if (this.at().type == TokenType.Else) {
-    //         this.eat(); // eat else keyword
-    //         this.expect(TokenType.OpenBrace, "Expected open brace following else keyword");
-    //         while (this.at().type !== TokenType.EOF && this.at().type !== TokenType.CloseBrace) {
-    //             elseBody.push(this.parse_stmt());
-    //         }
-    //     }
-    //
-    //     // todo add the condition bool check, will most likely need to add the bool type to the lexer and == || && != >= <= > < operators
-    //     const ifExpr = {
-    //         kind: "IfExpr",
-    //         condition,
-    //         then: body,
-    //         otherwise: elseBody,
-    //     } as IfExpr;
-    //
-    // }
+    private parse_if_expr(): Expr {
+        // if ( EXPR ) { STMT[] }
+        this.eat(); // eat if keyword
+        this.expect(TokenType.OpenParen, "Expected open paren following if keyword");
+        const condition = this.parse_expr();
+
+        if(condition.kind != "ComparisonExpr") {
+            throw new Error("Comparison is not type Comparison Expression")
+        }
+
+        // see if condition is true or false
+        this.expect(TokenType.CloseParen, "Expected close paren following if condition");
+        this.expect(TokenType.OpenBrace, "Expected open brace following if condition");
+        // parse body
+        const body: Stmt[] = [];
+        while (this.at().type !== TokenType.EOF && this.at().type !== TokenType.CloseBrace) {
+            body.push(this.parse_stmt());
+        }
+
+        this.expect(TokenType.CloseBrace, "Expected close brace following if body");
+
+        // parse else if there is one
+        let elseBody: Stmt[] = [];
+        if (this.at().type == TokenType.Else) {
+            this.eat(); // eat else keyword
+            this.expect(TokenType.OpenBrace, "Expected open brace following else keyword");
+            while (this.at().type !== TokenType.EOF && this.at().type !== TokenType.CloseBrace) {
+                elseBody.push(this.parse_stmt());
+            }
+            this.expect(TokenType.CloseBrace, "Expected close brace following else body");
+        }
+
+        // todo add the condition bool check, will most likely need to add the bool type to the lexer and == || && != >= <= > < operators
+        const value = (condition as ComparisonExpr)
+        const ifExpr: IfExpr = {
+            kind: "IfExpr",
+            condition: value,
+            then: body,
+            otherwise: elseBody,
+        } as IfExpr;
+
+        return ifExpr;
+    }
 
     private parse_comparison_expr(): Expr {
         // EXPR ( == | != | > | < | >= | <= ) EXPR

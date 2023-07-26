@@ -126,7 +126,7 @@ export interface ObjectLiteral extends Expr {
 
 export interface IfExpr extends Expr {
     kind: "IfExpr";
-    condition: boolean;
+    condition: ComparisonExpr;
     then: Expr[];
     otherwise: Expr[];
 }
